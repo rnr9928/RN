@@ -3,11 +3,17 @@ import { Dimensions, Pressable, StyleSheet, Text, TextInput, View } from 'react-
 import styles from './style';
 import  { Image  } from 'react-native';
 import Animated, { useSharedValue , useAnimatedStyle, interpolate ,
-withTiming } from 'react-native-reanimated';
+withTiming, 
+withDelay} from 'react-native-reanimated';
+
+import React,{useState} from 'react';
 
 export default function App() {
  const {height,width} = Dimensions.get("window")
   const imagePosition = useSharedValue(1)
+  const [isCreate,setIsCreate] = useState(false)
+
+
   const imageAni = useAnimatedStyle(()=>{
     const interpolation = interpolate(imagePosition.value, [0,1], [ -height/2,0])
     return {
@@ -32,11 +38,24 @@ export default function App() {
     }
   })
 
+  const f_animate = useAnimatedStyle(() => {
+    return{
+      opacity: imagePosition.value === 0 ?  withDelay(400, withTiming(1, { duration:800})) :
+      withTiming(0, {duration:300})
+    }
+  })
+
   const loginHandler = () =>{
     imagePosition.value = 0
+    if (isCreate) {
+      setIsCreate(false);
+    }
   }
   const createHandler = () =>{
     imagePosition.value = 0
+    if (!isCreate) {
+      setIsCreate(true);
+    }
   }
 
   const loginbg= require('./assets/login-bg.jpg')
@@ -50,31 +69,41 @@ export default function App() {
       />   
 
    <Animated.View style={[styles.closeButton, closeButtonStyle]}>
-    <Text onPress={()=> imagePosition.value = 1}>X</Text> 
+    <Text onPress={()=> (imagePosition.value = 1)}>X</Text> 
     </Animated.View>
    </Animated.View>
 
     <View style={styles.bottomContainer}>
       <Animated.View style={btnAni}>
-      <Pressable style={styles.button} onPress={loginHandler}>
-        <Text style={styles.buttonText}>LOGIN</Text>
+         <View style={styles.movebtn}>
+      <Pressable style={styles.button} onPress={loginHandler}>      
+        <Text style={styles.buttonText}>LOGIN</Text>    
          </Pressable>
+         </View>
       </Animated.View>
 
       <Animated.View  style={btnAni}>
-      <Pressable style={styles.button} onPress={createHandler}>
+      <View style={styles.movebtn2}>
+      <Pressable style={styles.button} onPress={createHandler}>       
         <Text style={styles.buttonText}>CREATE</Text>
          </Pressable>
+         </View>
          </Animated.View>
 
-         <View  style={styles.f_InputContainer}>
+         <Animated.View  style={[styles.f_InputContainer, f_animate]}>
           <TextInput placeholder='이메일' style={styles.textInput}/>
-          <TextInput placeholder='이름'  style={styles.textInput}/>
+          {isCreate && (
+            <TextInput 
+            placeholder='이름'  style={styles.textInput}
+            />
+           )}     
           <TextInput placeholder='비밀번호'  style={styles.textInput}/>
-         </View>
+        
          <View style={styles.f_button}>
-            <Text style={styles.buttonText}>LOG IN</Text>
+            <Text style={styles.buttonText}>{isCreate ? 'CREATE' : 'LOGIN'}</Text>
          </View>
+       </Animated.View>
+
       </View>
     </View>
   );
